@@ -1,6 +1,9 @@
 # ToDoApp
 small application in python to track your To Do's
 
+_Prerequisities_:
+python3, tkinter, sqlite3
+
 Config File "ToDoConfig.cfg" will be created after first run
 _Default config settings:_
 DB_NAME=ToDo.db
