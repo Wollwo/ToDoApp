@@ -26,4 +26,26 @@ m2 - keep 2 minutes from last change
 s2 - keep 2 seconds from last change
 _TODO_SORTING_NEW_TO_OLD_ - sorting of ToDos, if False, than old are on top
 
-DB will be created after first run. sqlite3 is used
+_DB Header_
+time_created (integer PRIMARY KEY)
+time_last_changed (integer NOT NULL)
+checked (integer NOT NULL) 0 or 1
+title (text NOT NULL)
+notes (text)
+trashed (integer NOT NULL) 0 or 1
+user (text NOT NULL)
+
+_CSV for import_
+row: [YYYY][MM][DD][hh][mm][ss];[YYYY][MM][DD][hh][mm][ss];0;My Title;My Note&#10&#34Note&#59Note&#34;0;Default
+YYYY (year)   = 2020
+MM (month)    = 12
+DD (day)      = 24
+hh (hour 24H) = 13
+mm (minutes)  = 01
+ss (seconds)  = 01
+
+_Special characters in Notes_
+new line, \n, &#10
+double quote, ", &#34
+semicolon, ;, &#59
+
