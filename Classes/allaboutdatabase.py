@@ -115,11 +115,14 @@ class AllAboutDatabase:
                 self.conn.commit()
             except sqlite3.IntegrityError as e:
                 self.debug(f'ERROR: {e}; ')
+                return str(e)
             except sqlite3.OperationalError as e:
                 self.debug(f'ERROR: {e}; ' +
                            f'HINT: see, if table exist, or create DB from scratch')
+                return str(e)
 
         self.close_connection()
+        return "OK"
 
     def remove_lines_in_table(self, my_ids=()):
         self.open_connection()
@@ -157,50 +160,3 @@ class AllAboutDatabase:
                 self.debug(f'ERROR: {e}; ')
 
         self.close_connection()
-
-
-if __name__ == '__main__':
-    myDebug = True
-
-    #: table name where things are stored
-    tableName = "main"
-    #: sql if there is need to create database
-    sqlCreateMainTable = f""" CREATE TABLE IF NOT EXISTS {tableName} (
-                                time_created integer PRIMARY KEY,
-                                time_last_changed integer NOT NULL,
-                                checked integer NOT NULL,
-                                title text NOT NULL,
-                                notes text,
-                                trashed integer NOT NULL,
-                                user text NOT NULL) """
-
-    #: path to DB, name of DB
-    # path = '/home/wollwo/Projects/Python3/Pycharm/ToDoApp'
-    path = '/drives/C/_/Projects/python3/ToDoApp'
-    dbName = path + '/ToDo.db'
-
-    in_data = [{'time_created': 20201125093100, 'time_last_changed': 20201125093100,
-                'checked': 0, 'title': 'test01', 'notes': None, 'trashed': 0, 'user': 'Default'},
-               {'time_created': 20201125093101, 'time_last_changed': 20201125093101,
-                'checked': 0, 'title': 'test01', 'notes': None, 'trashed': 0, 'user': 'Default'},
-               {'time_created': 20201125093102, 'time_last_changed': 20201125093402,
-                'checked': 0, 'title': 'test01', 'notes': None, 'trashed': 0, 'user': 'Default'},
-               {'time_created': 20201125093103, 'time_last_changed': 20201125093403,
-                'checked': 1, 'title': 'test01', 'notes': None, 'trashed': 0, 'user': 'Default'},
-               {'time_created': 20201125093104, 'time_last_changed': 20201125093404,
-                'checked': 1, 'title': 'test01', 'notes': None, 'trashed': 0, 'user': 'Default'},
-               {'time_created': 20201125093105, 'time_last_changed': 20201125093105,
-                'checked': 0, 'title': 'test01', 'notes': None, 'trashed': 1, 'user': 'Default'},
-               {'time_created': 20201125093106, 'time_last_changed': 20201125093906,
-                'checked': 1, 'title': 'test01', 'notes': None, 'trashed': 0, 'user': 'Default'},
-               {'time_created': 20201125093107, 'time_last_changed': 20201125093907,
-                'checked': 0, 'title': 'test01', 'notes': None, 'trashed': 1, 'user': 'Default'},
-               {'time_created': 20201125093108, 'time_last_changed': 20201125093908,
-                'checked': 1, 'title': 'test01', 'notes': None, 'trashed': 1, 'user': 'Default'}
-               ]
-
-    dbObject = AllAboutDatabase(dbName, sqlCreateMainTable, table_name=tableName, my_debug=myDebug)
-
-    print('FIRST print dbObject.print_table():\n' + str(dbObject.print_table('where user="Default"')) + '\n')
-    # dbObject.insert_into_table(in_data)
-    # dbObject.update_lines_in_table(in_data)
