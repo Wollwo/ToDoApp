@@ -23,6 +23,7 @@ from tkinter import ttk
 # ToDo : System Try ico, close to TRY
 # ToDo : Always on top
 # ToDo : Opacity of main window
+# ToDo : add password protection for tasks (user passwd, stored in DB with task also in config file; and DB passwd)
 #: ----------------
 
 #############
@@ -75,6 +76,16 @@ class MyGui:
             command=lambda: [self.command_button_show_edit(f'"ADD" button in {file_name} menu pressed',
                                                            my_user=self.my_user)])
 
+        #: export to do for user
+        file.add_command(
+            label='Export',
+            command=lambda: [self.command_button_export()])
+
+        #: import to do for user
+        file.add_command(
+            label='Import',
+            command=lambda: [self.command_button_import()])
+
         #: open config
         file.add_command(
             label="Config",
@@ -100,6 +111,19 @@ class MyGui:
     #: ################################
     #: Commands for File menu Buttons #
     #: ################################
+    def command_button_import(self):
+        self.debug('import button pressed')
+        self.import_popup()
+
+    def command_button_export(self):
+        self.debug('export button pressed')
+        rows = self.dbObject.print_table(f'WHERE user=\'{self.myConfig["MY_USER"]}\'')
+
+        export = open(f'export_{self.myConfig["MY_USER"]}.csv', "w")
+        for row in rows:
+            export.write(f'{row["time_created"]};{row["time_last_changed"]};{row["checked"]};{row["title"]};'
+                         f'{row["notes"]};{row["trashed"]};{row["user"]}\n')
+        export.close()
 
     def command_button_show_edit(self, to_print, my_user, new=True):
         self.debug(to_print)
@@ -161,8 +185,12 @@ class MyGui:
     def change_quotes_in_text(task, text):
         if task == 'write':
             text = text.replace('"', '&#34')
+            text = text.replace('\n', '&#10')
+            text = text.replace(';', '&#59')
         elif task == 'read':
             text = text.replace('&#34', '"')
+            text = text.replace('&#10', '\n')
+            text = text.replace('&#59', ';')
         return text
 
     @staticmethod
@@ -255,6 +283,36 @@ class MyGui:
             self.dbObject.update_lines_in_table(update_array)
 
         #: will reload tabs
+        self.command_reload_tabs()
+
+    def command_import_from_csv(self, file_name):
+        file = open(file_name, "r")
+        for line in file:
+            #: continue in next iteration if line is blank
+            if line == "":
+                continue
+            #: continue if there is only whitespace characters in line
+            if line.isspace():
+                continue
+
+            tmp_list = line.rstrip().split(';')
+            tmp_dict = {'time_created': tmp_list[0],
+                        'time_last_changed': tmp_list[1],
+                        'checked': tmp_list[2],
+                        'title': tmp_list[3],
+                        'notes': tmp_list[4],
+                        'trashed': tmp_list[5],
+                        'user': tmp_list[6]}
+            done = 'continue'
+            while done != 'OK':
+                done = self.dbObject.insert_into_table([tmp_dict])
+                if 'UNIQUE constraint failed' in done:
+                    tmp_dict['time_created'] = str(int(tmp_dict['time_created'])+1)
+                elif done != 'OK':
+                    self.warning_popup(done, self.parent)
+                    break
+
+        file.close()
         self.command_reload_tabs()
 
     #: ###########
@@ -406,6 +464,38 @@ class MyGui:
     #: ################
     #: POP-UP Windows #
     #: ################
+    def import_popup(self):
+        title_text = "Import"
+        resize = False
+
+        #: creating  pop up window
+        import_window = tk.Toplevel()
+        import_window.wm_title(f'{title_text}')
+        import_window.resizable(width=resize, height=resize)
+        import_window.geometry(f'+{self.parent.winfo_x()+50}+{self.parent.winfo_y()+50}')
+
+        #: top Frame
+        top_frame = tk.Frame(import_window, relief=tk.SUNKEN, borderwidth=2)
+        label = tk.Label(top_frame, text='Path/File.csv:')
+        entry_box = tk.Entry(top_frame, font=30)
+        top_frame.pack(side="top", fill="both", padx=5, pady=5)
+        label.pack(side="left", fill="both", padx=5, pady=5)
+        entry_box.pack(side="left", fill="both", padx=5, pady=5)
+
+        #: bottom Frame
+        bottom_frame = tk.Frame(import_window)
+        bottom_frame.pack(side="top", fill="both", padx=5, pady=5)
+        close_button = tk.Button(bottom_frame, text='CLOSE', fg='red',
+                                 command=lambda: [self.debug(f'CLOSE Button pressed in {title_text} popup'),
+                                                  import_window.destroy()
+                                                  ])
+        close_button.pack(side="right")
+        import_button = tk.Button(bottom_frame, text='Import', fg='black',
+                                  command=lambda: [self.debug(f'Import Button pressed in {title_text} popup'),
+                                                   self.command_import_from_csv(entry_box.get())
+                                                   ])
+        import_button.pack(side="right")
+
     def warning_popup(self, text, my_parent):
         #: pop-up variables
         title_text = "Configuration"
