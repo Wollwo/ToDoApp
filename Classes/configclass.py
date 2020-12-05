@@ -96,17 +96,3 @@ class ConfigClass:
 
             #: load default if config do not exist
             return default_config_dict
-
-
-if __name__ == '__main__':
-    myDebug = True
-
-    myDefaultConfDict = {
-        'DB_NAME': 'ToDo.db',
-        'MY_USER': 'Default',
-        'TRASH': 'True'
-    }
-    path = '/home/wollwo/Projects/Python3/Pycharm/ToDoApp'
-    config = path + '/config.cfg'
-
-    confObject = ConfigClass(myDefaultConfDict, config, myDebug)
