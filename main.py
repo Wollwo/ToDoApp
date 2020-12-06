@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from Classes.getcurrentdatetime import GetCurrentDatetime
 from Classes.allaboutdatabase import AllAboutDatabase
 from Classes.configclass import ConfigClass
@@ -36,7 +38,7 @@ from tkinter import ttk
 #############
 
 class MyGui:
-    def __init__(self, parent, config_object, sql_create_main_table, my_debug=False):
+    def __init__(self, parent, config_object, sql_create_main_table, my_debug=False, my_path=''):
         self.parent = parent
         self.sqlCreateMainTable = sql_create_main_table
         self.myDebug = my_debug
@@ -44,6 +46,8 @@ class MyGui:
         #: config
         self.configObject = config_object
         self.myConfig = self.configObject.get_my_conf_dict()
+        if my_path:
+            self.myConfig['DB_NAME'] = f'{my_path}/{self.myConfig["DB_NAME"]}'
         self.myConfFileNameWithPath = self.configObject.get_my_conf_file_name()
         self.my_user = self.myConfig['MY_USER']
         self.keep_trash_list = self.change_keep_trash_to_list(self.myConfig['KEEP_TRASH'])
@@ -667,6 +671,10 @@ class MyGui:
 #: DEFINITIONS #
 #: #############
 
+def debug(text='nothing specified'):
+    if myDebug:
+        print(f'DEBUG INFO: {text}')
+
 #: ######
 #: BODY #
 #: ######
@@ -686,9 +694,14 @@ if __name__ == '__main__':
     }
 
     #: load config
-    myScriptPath = dirname(argv[0])
+    appDir = dirname(__file__)
+    debug(appDir)
     myConfName = "ToDoConfig.cfg"
-    myConf = myScriptPath + "/" + myConfName
+    if not appDir:
+        myConf = myConfName
+        appDir = ''
+    else:
+        myConf = f'{appDir}/{myConfName}'
     configObject = ConfigClass(myDefaultConfDict, my_conf=myConf)
 
     #: table name where things are stored
@@ -704,6 +717,7 @@ if __name__ == '__main__':
                                 user text NOT NULL) """
 
     root = Tk()
-    my_gui = MyGui(root, config_object=configObject, sql_create_main_table=sqlCreateMainTable, my_debug=myDebug)
+    my_gui = MyGui(root, config_object=configObject, sql_create_main_table=sqlCreateMainTable, my_debug=myDebug,
+                   my_path=appDir)
 
     root.mainloop()
